@@ -134,11 +134,7 @@ def logout():
     session.clear()
     return redirect("/login")
 
-@app.route("/todos")
-def todos():
-    if "user_id" not in session:
-        return redirect("/login")
-
+def render_todos(error=None, form_title=""):
     conn = get_db()
     try:
         with conn.cursor() as cur:
@@ -150,7 +146,50 @@ def todos():
     finally:
         conn.close()
 
-    return render_template("todos.html", items=items, name=session["name"])
+    return render_template(
+        "todos.html",
+        items=items,
+        name=session["name"],
+        error=error,
+        form_title=form_title,
+    )
+
+
+@app.route("/todos")
+def todos():
+    if "user_id" not in session:
+        return redirect("/login")
+    return render_todos()
+
+
+@app.route("/todos/add", methods=["POST"])
+def add_todo():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    title = request.form.get("title", "").strip()
+
+    error = None
+    if title == "":
+        error = "Title is required"
+    elif len(title) > 200:
+        error = "Title is too long (200 characters at most)"
+
+    if error:
+        return render_todos(error=error, form_title=request.form.get("title", ""))
+
+    conn = get_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO todos (user_id, title) VALUES (%s, %s)",
+                (session["user_id"], title),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+    return redirect("/todos")
 
 
 if __name__ == "__main__":

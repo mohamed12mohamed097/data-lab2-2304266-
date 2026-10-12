@@ -3,6 +3,12 @@
 <h1>To-Do</h1>
 <p>Hi, {{ name }} <a href="/logout">Log out</a></p>
 
+<form id="add-form" method="POST" action="/todos/add" novalidate>
+    <input type="text" id="title" name="title" placeholder="What needs to be done?" value="{{ form_title }}">
+    <button type="submit">Add</button>
+    <span class="error" id="error-title">{{ error or '' }}</span>
+</form>
+
 {% if items %}
 <ul>
     {% for item in items %}
@@ -12,4 +18,6 @@
 {% else %}
 <p>No to-dos yet.</p>
 {% endif %}
+
+<script src="{{ url_for('static', filename='todos.js') }}"></script>
 {% endblock %}

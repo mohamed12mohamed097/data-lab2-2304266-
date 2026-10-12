@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>To-Do App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    {% block content %}{% endblock %}
+    <div class="container">
+        <div class="card">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
 </body>
 </html>

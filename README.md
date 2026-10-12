@@ -1,7 +1,7 @@
 # Lab 2: Login & To-Do Application
 
 ## 1. Team
-- Mohamed [your last name], ID 2304266: did everything (database, back end, front end, README). Worked alone.
+- Mohamed hassan teama, ID 2304266
 
 ## 2. Technology
 - Back end: Python 3, Flask, PyMySQL, bcrypt

@@ -89,5 +89,51 @@ def register():
     session["name"] = name
     return redirect("/todos")
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html", errors={}, form={})
+
+    email = request.form.get("email", "").strip()
+    password = request.form.get("password", "")
+
+    errors = {}
+    if email == "":
+        errors["email"] = "Email is required"
+    if password == "":
+        errors["password"] = "Password is required"
+
+    if errors:
+        return render_template("login.html", errors=errors, form=request.form)
+
+    conn = get_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT user_id, name, password_hash FROM users WHERE email = %s",
+                (email,),
+            )
+            user = cur.fetchone()
+    finally:
+        conn.close()
+
+    # same message for unknown email and wrong password
+    if user is None or not bcrypt.checkpw(
+        password.encode("utf-8"), user["password_hash"].encode("utf-8")
+    ):
+        errors["login"] = "Invalid email or password"
+        return render_template("login.html", errors=errors, form=request.form)
+
+    session["user_id"] = user["user_id"]
+    session["name"] = user["name"]
+    return redirect("/todos")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
+
 if __name__ == "__main__":
     app.run(debug=True)

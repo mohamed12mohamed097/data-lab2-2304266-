@@ -134,6 +134,24 @@ def logout():
     session.clear()
     return redirect("/login")
 
+@app.route("/todos")
+def todos():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT todo_id, title, is_done, created_at FROM todos WHERE user_id = %s ORDER BY todo_id DESC",
+                (session["user_id"],),
+            )
+            items = cur.fetchall()
+    finally:
+        conn.close()
+
+    return render_template("todos.html", items=items, name=session["name"])
+
 
 if __name__ == "__main__":
     app.run(debug=True)

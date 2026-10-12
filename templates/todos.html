@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>To-Do</h1>
+<p>Hi, {{ name }} <a href="/logout">Log out</a></p>
+
+{% if items %}
+<ul>
+    {% for item in items %}
+    <li>{{ item.title }}{% if item.is_done %} (done){% endif %}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No to-dos yet.</p>
+{% endif %}
+{% endblock %}

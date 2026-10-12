@@ -134,7 +134,7 @@ def logout():
     session.clear()
     return redirect("/login")
 
-def render_todos(error=None, form_title=""):
+def render_todos(error=None, form_title="", error_id=None):
     conn = get_db()
     try:
         with conn.cursor() as cur:
@@ -152,6 +152,7 @@ def render_todos(error=None, form_title=""):
         name=session["name"],
         error=error,
         form_title=form_title,
+        error_id=error_id,
     )
 
 
@@ -191,6 +192,73 @@ def add_todo():
 
     return redirect("/todos")
 
+def validate_title(raw):
+    title = raw.strip()
+    if title == "":
+        return title, "Title is required"
+    if len(title) > 200:
+        return title, "Title is too long (200 characters at most)"
+    return title, None
+
+
+@app.route("/todos/<int:todo_id>/edit", methods=["POST"])
+def edit_todo(todo_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    title, error = validate_title(request.form.get("title", ""))
+    if error:
+        return render_todos(error=error, error_id=todo_id)
+
+    conn = get_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE todos SET title = %s WHERE todo_id = %s AND user_id = %s",
+                (title, todo_id, session["user_id"]),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+    return redirect("/todos")
+
+
+@app.route("/todos/<int:todo_id>/done", methods=["POST"])
+def done_todo(todo_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    is_done = 1 if request.form.get("is_done") == "1" else 0
+
+    conn = get_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE todos SET is_done = %s WHERE todo_id = %s AND user_id = %s",
+                (is_done, todo_id, session["user_id"]),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+    return redirect("/todos")
+
+
+@app.route("/todos/<int:todo_id>/delete", methods=["POST"])
+def delete_todo(todo_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM todos WHERE todo_id = %s AND user_id = %s",
+                (todo_id, session["user_id"]),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+    return redirect("/todos")
 
 if __name__ == "__main__":
     app.run(debug=True)

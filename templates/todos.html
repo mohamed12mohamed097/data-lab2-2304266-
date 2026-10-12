@@ -6,13 +6,32 @@
 <form id="add-form" method="POST" action="/todos/add" novalidate>
     <input type="text" id="title" name="title" placeholder="What needs to be done?" value="{{ form_title }}">
     <button type="submit">Add</button>
-    <span class="error" id="error-title">{{ error or '' }}</span>
+    <span class="error" id="error-title">{% if error and error_id is none %}{{ error }}{% endif %}</span>
 </form>
 
 {% if items %}
 <ul>
     {% for item in items %}
-    <li>{{ item.title }}{% if item.is_done %} (done){% endif %}</li>
+    <li>
+        <form method="POST" action="/todos/{{ item.todo_id }}/done" style="display:inline">
+            <input type="hidden" name="is_done" value="{{ 0 if item.is_done else 1 }}">
+            <button type="submit">{{ '✔' if item.is_done else '○' }}</button>
+        </form>
+
+        <form class="edit-form" method="POST" action="/todos/{{ item.todo_id }}/edit" style="display:inline" novalidate>
+            <input type="text" name="title" value="{{ item.title }}"
+                   {% if item.is_done %}style="text-decoration:line-through"{% endif %}>
+            <button type="submit">Save</button>
+        </form>
+
+        <form class="delete-form" method="POST" action="/todos/{{ item.todo_id }}/delete" style="display:inline">
+            <button type="submit">Delete</button>
+        </form>
+
+        {% if error and error_id == item.todo_id %}
+        <span class="error">{{ error }}</span>
+        {% endif %}
+    </li>
     {% endfor %}
 </ul>
 {% else %}
